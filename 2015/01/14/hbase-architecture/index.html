@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>HBase架构 | Perspiration&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="HBase是一个分布式的NoSQL数据库，在NoSQL家族中属于面向列族的数据库。HBase的灵感来自于Google BigTable，正如BigTable是建立在Google文件系统（GFS）之上的存储系统，与此对应，HBase主要架构在Hadoop之上。HBase和Hadoop的无缝结合，也成为HBase相比其他NoSQL数据库最大的优势之一。这篇博客主要介绍HBase的基础架构，以便对H">
+<meta property="og:type" content="article">
+<meta property="og:title" content="HBase架构">
+<meta property="og:url" content="http://yoursite.com/2015/01/14/hbase-architecture/index.html">
+<meta property="og:site_name" content="Perspiration's blog">
+<meta property="og:description" content="HBase是一个分布式的NoSQL数据库，在NoSQL家族中属于面向列族的数据库。HBase的灵感来自于Google BigTable，正如BigTable是建立在Google文件系统（GFS）之上的存储系统，与此对应，HBase主要架构在Hadoop之上。HBase和Hadoop的无缝结合，也成为HBase相比其他NoSQL数据库最大的优势之一。这篇博客主要介绍HBase的基础架构，以便对H">
+<meta property="og:image" content="http://ww2.sinaimg.cn/large/628b24d4jw1eo5xjspyv3j20fd0a0ab6.jpg">
+<meta property="og:image" content="http://ww2.sinaimg.cn/large/628b24d4jw1eo5xtksdn7j20dv07njsq.jpg">
+<meta property="og:image" content="http://ww1.sinaimg.cn/large/628b24d4jw1eo9eqtekh1j20e305z74o.jpg">
+<meta property="og:image" content="http://ww1.sinaimg.cn/large/628b24d4jw1eo5xshsdc3j20ae05o74j.jpg">
+<meta property="og:updated_time" content="2017-03-19T07:23:11.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="HBase架构">
+<meta name="twitter:description" content="HBase是一个分布式的NoSQL数据库，在NoSQL家族中属于面向列族的数据库。HBase的灵感来自于Google BigTable，正如BigTable是建立在Google文件系统（GFS）之上的存储系统，与此对应，HBase主要架构在Hadoop之上。HBase和Hadoop的无缝结合，也成为HBase相比其他NoSQL数据库最大的优势之一。这篇博客主要介绍HBase的基础架构，以便对H">
+<meta name="twitter:image" content="http://ww2.sinaimg.cn/large/628b24d4jw1eo5xjspyv3j20fd0a0ab6.jpg">
+  
+    <link rel="alternative" href="/atom.xml" title="Perspiration&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="http://ww1.sinaimg.cn/large/628b24d4gw1ep19njh9ioj208x08xmyf.jpg">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  
+
+  <script src="http://libs.baidu.com/jquery/1.9.0/jquery.js"></script>
+</head>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+	<header id="header" class="inner">
+		<div class="profilepic">
+			<img src="http://ww4.sinaimg.cn/large/628b24d4jw1eo3lelgnx4j20g40fh0td.jpg">
+		</div>
+
+		<hgroup>
+		  <h1 class="header-author"><a href="/">Perspiration</a></h1>
+		</hgroup>
+
+		
+
+		
+			<div class="switch-btn">
+				<div class="icon">
+					<div class="icon-ctn">
+						<div class="icon-wrap icon-house" data-idx="0">
+							<div class="birdhouse"></div>
+							<div class="birdhouse_holes"></div>
+						</div>
+						<div class="icon-wrap icon-ribbon hide" data-idx="1">
+							<div class="ribbon"></div>
+						</div>
+						
+						
+					</div>
+					
+				</div>
+				<div class="tips-box hide">
+					<div class="tips-arrow"></div>
+					<ul class="tips-inner">
+						<li>菜单</li>
+						<li>标签</li>
+						
+						
+					</ul>
+				</div>
+			</div>
+		
+
+		<div class="switch-area">
+			<div class="switch-wrap">
+				<section class="switch-part switch-part1">
+					<nav class="header-menu">
+						<ul>
+						
+							<li><a href="/">主页</a></li>
+				        
+							<li><a href="/archives">所有文章</a></li>
+				        
+							<li><a href="/categories/reading">随笔</a></li>
+				        
+						</ul>
+					</nav>
+					<nav class="header-nav">
+						<div class="social">
+							
+								<a class="github" target="_blank" href="https://github.com/Perspiration" title="github">github</a>
+					        
+								<a class="weibo" target="_blank" href="http://weibo.com/u/1653286100/" title="weibo">weibo</a>
+					        
+						</div>
+					</nav>
+				</section>
+				
+				
+				<section class="switch-part switch-part2">
+					<div class="widget tagcloud">
+						<a href="/tags/HBase/" style="font-size: 10px;">HBase</a> <a href="/tags/Java/" style="font-size: 20px;">Java</a> <a href="/tags/NoSQL/" style="font-size: 15px;">NoSQL</a> <a href="/tags/Other/" style="font-size: 10px;">Other</a> <a href="/tags/Plan/" style="font-size: 10px;">Plan</a> <a href="/tags/算法/" style="font-size: 10px;">算法</a>
+					</div>
+				</section>
+				
+				
+				
+
+				
+			</div>
+		</div>
+	</header>				
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+  	<div class="overlay"></div>
+	<div class="intrude-less">
+		<header id="header" class="inner">
+			<div class="profilepic">
+				<img src="http://ww4.sinaimg.cn/large/628b24d4jw1eo3lelgnx4j20g40fh0td.jpg">
+			</div>
+
+			<hgroup>
+			  <h1 class="header-author"><a href="/">Perspiration</a></h1>
+			</hgroup>
+			
+			<nav class="header-menu">
+				<ul>
+				
+					<li><a href="/">主页</a></li>
+		        
+					<li><a href="/archives">所有文章</a></li>
+		        
+					<li><a href="/categories/reading">随笔</a></li>
+		        
+		        <div class="clearfix"></div>
+				</ul>
+			</nav>
+			<nav class="header-nav">
+				<div class="social">
+					
+						<a class="github" target="_blank" href="https://github.com/Perspiration" title="github">github</a>
+			        
+						<a class="weibo" target="_blank" href="http://weibo.com/u/1653286100/" title="weibo">weibo</a>
+			        
+				</div>
+			</nav>
+		</header>				
+	</div>
+</nav>
+      <article id="post-hbase-architecture" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2015/01/14/hbase-architecture/" class="article-date">
+  	<time datetime="2015-01-14T14:28:00.000Z" itemprop="datePublished">2015-01-14</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/blog/">blog</a>
+  </div>
+
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/HBase/">HBase</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/NoSQL/">NoSQL</a></li></ul>
+
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      HBase架构
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>　　HBase是一个分布式的NoSQL数据库，在NoSQL家族中属于面向列族的数据库。HBase的灵感来自于Google BigTable，正如BigTable是建立在Google文件系统（GFS）之上的存储系统，与此对应，HBase主要架构在Hadoop之上。HBase和Hadoop的无缝结合，也成为HBase相比其他NoSQL数据库最大的优势之一。这篇博客主要介绍HBase的基础架构，以便对HBase有一个感性的认识。<a id="more"></a></p>
+<p>##HBase架构</p>
+<center><img src="http://ww2.sinaimg.cn/large/628b24d4jw1eo5xjspyv3j20fd0a0ab6.jpg" alt=""></center><br>　　HBase主要包含<strong>RegionServer、Master、Zookeeper、Client</strong>这四个部分，如上图所示。其中最中心最主体的部分是RegionServer。下面我们将分别从这几个方面对HBase进行讲述。<br><br><h3>1. RegionServer</h3><br>　　RegionServer主要完成的是<strong>对Region的管理</strong>工作。我们知道，在HBase中一张表可能非常大，一台机器可能无法存下，HBase中的解决方法是将每个Table分成若干个Region，然后将将它们分配到不同的RegionServer上进行管理。如下图所示：<br><center><img src="http://ww2.sinaimg.cn/large/628b24d4jw1eo5xtksdn7j20dv07njsq.jpg" alt=""></center><br>　　RegionServer的具体功能包括：1. 管理Region；2. 与Master交互，上传Region负载信息。RegionServer的结构如下图所示：<br><center><img src="http://ww1.sinaimg.cn/large/628b24d4jw1eo9eqtekh1j20e305z74o.jpg" alt=""></center><br>　　从上图可以看出，<strong>RegionServer主要由1~n个Regions和一个HLog组成</strong>，Region负责存储具体数据，HLog是日志文件，方便故障恢复工作。<br><br><h3>2. Master</h3><br>　　HBase Master主要负责<strong>Table和Region的管理工作</strong>，具体包括以下几个方面：<br>　　1.  对用户表的增删改查；<br>　　2.  Region的负载均衡；<br>　　3.  Region Split操作之后分配新的Region；<br>　　4.  在RegionServer停机之后，对Regions进行迁移；<br>　　5.  监控RegionServer的健康状况；<br>　　6.  存储ROOT表所在的RegionServer地址。<br><br>　　一个集群中只有一个Master节点，Master节点又要完成以上如此之多的任务，很明显我们可以看出，Master存在<strong>单点访问问题</strong>，也就是说，一旦Master失效，整个集群面临着全面关闭的危险。<br><br><h3>3. Zookeeper</h3><br>　　Zookeeper的引入很好的<strong>解决了上述的Master的单点访问问题</strong>。<br>　　在讲述Zookeeper完成的功能之前，我先要了解一下HBase中两张特殊的表，分别是META表和ROOT表。<br><center><img src="http://ww1.sinaimg.cn/large/628b24d4jw1eo5xshsdc3j20ae05o74j.jpg" alt=""></center>  
+
+<ul>
+<li>META：用于记录用户表的Region信息。由于Region信息非常之多，META表可能会非常大，一个Region可能存不下，这里可以将META表分裂成多个Regions进行存储。  </li>
+<li>ROOT：记录META表的Region信息，ROOT表只占用一个Region。</li>
+</ul>
+<p>　　在了解了META和ROOT之后，我们来看看Zookeeper主要完成的功能。<br>　　1. 存储ROOT表的地址和HMaster的地址；<br>　　2. RegionServer会注册到Zookeeper中，使得Zookeeper可随时感知其健康状况；<br>　　3. 避免Master单点问题，在Master挂掉之后可以产生新的Master。</p>
+<p></p><h3>4. Client</h3><br>　　Client是用户与HBase之间的桥梁，用户通过Client对HBase数据库进行操作。Client主要能完成两类操作，分别是<strong>管理类操作和数据读写操作</strong>。<br>　　管理类操作主要的工作是与Master进行RPC通信；而数据读写操作主要是与RegionServer进行RPC通信。<br>　　系统中存在Zookeeper的情况下，Client要找到RegionServer就必须先和Zookeeper进行通信，获得ROOT表的位置，进而找到RegionServer。在获得RegionServer位置的同时，Client还会将这个RegionServer的信息缓存起来，方便下一次直接访问。  <p></p>
+<h2 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h2><p>Hbase存储架构（整理）：<a href="http://asyty.iteye.com/blog/1250301" target="_blank" rel="external">http://asyty.iteye.com/blog/1250301</a><br>HBase框架简介(整理)：<a href="http://asyty.iteye.com/blog/1250273" target="_blank" rel="external">http://asyty.iteye.com/blog/1250273</a>  </p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2015/02/07/2015-reading-plan/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">&lt;</strong>
+      <div class="article-nav-title">
+        
+          2015阅读计划
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2014/09/23/cassandra/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">Cassandra概要</div>
+      <strong class="article-nav-caption">&gt;</strong>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+<div class="share">
+	<!-- JiaThis Button BEGIN -->
+	<div class="jiathis_style">
+		<span class="jiathis_txt">分享到：</span>
+		<a class="jiathis_button_tsina"></a>
+		<a class="jiathis_button_cqq"></a>
+		<a class="jiathis_button_douban"></a>
+		<a class="jiathis_button_weixin"></a>
+		<a class="jiathis_button_tumblr"></a>
+		<a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jtico jtico_jiathis" target="_blank"></a>
+	</div>
+	<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js?uid=1405949716054953" charset="utf-8"></script>
+	<!-- JiaThis Button END -->
+</div>
+
+
+
+<div class="duoshuo">
+	<!-- 多说评论框 start -->
+	<div class="ds-thread" data-thread-key="hbase-architecture" data-title="HBase架构" data-url="http://yoursite.com/2015/01/14/hbase-architecture/"></div>
+	<!-- 多说评论框 end -->
+	<!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+	<script type="text/javascript">
+	var duoshuoQuery = {short_name:"true"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		 || document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+	<!-- 多说公共JS代码 end -->
+</div>
+
+
+
+
+      <footer id="footer">
+  <div class="outer">
+    <div id="footer-info">
+    	<div class="footer-left">
+    		&copy; 2017 Perspiration
+    	</div>
+      	<div class="footer-right">
+      		<a href="http://hexo.io/" target="_blank">Hexo</a>  Theme <a href="https://github.com/litten/hexo-theme-yilia" target="_blank">Yilia</a> by <a href="http://perspiration.gitcafe.com" target="_blank">Perspiration</a>
+      	</div>
+    </div>
+  </div>
+</footer>
+    </div>
+    
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+  <script src="/js/main.js"></script>
+
+  </div>
+</body>
+</html>

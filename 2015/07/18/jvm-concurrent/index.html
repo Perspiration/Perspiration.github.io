@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>《深入理解Java虚拟机》读书笔记（三）——并发机制 | Perspiration&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="本文是关于Java虚拟机中并发机制的实现。首先介绍Java虚拟机中内存的划分以及内存读写过程中的同步机制，然后介绍了Java线程的是实现，最后简单讲了一下线程以及锁的优化。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="《深入理解Java虚拟机》读书笔记（三）——并发机制">
+<meta property="og:url" content="http://yoursite.com/2015/07/18/jvm-concurrent/index.html">
+<meta property="og:site_name" content="Perspiration's blog">
+<meta property="og:description" content="本文是关于Java虚拟机中并发机制的实现。首先介绍Java虚拟机中内存的划分以及内存读写过程中的同步机制，然后介绍了Java线程的是实现，最后简单讲了一下线程以及锁的优化。">
+<meta property="og:updated_time" content="2017-03-19T07:22:42.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="《深入理解Java虚拟机》读书笔记（三）——并发机制">
+<meta name="twitter:description" content="本文是关于Java虚拟机中并发机制的实现。首先介绍Java虚拟机中内存的划分以及内存读写过程中的同步机制，然后介绍了Java线程的是实现，最后简单讲了一下线程以及锁的优化。">
+  
+    <link rel="alternative" href="/atom.xml" title="Perspiration&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="http://ww1.sinaimg.cn/large/628b24d4gw1ep19njh9ioj208x08xmyf.jpg">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  
+
+  <script src="http://libs.baidu.com/jquery/1.9.0/jquery.js"></script>
+</head>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+	<header id="header" class="inner">
+		<div class="profilepic">
+			<img src="http://ww4.sinaimg.cn/large/628b24d4jw1eo3lelgnx4j20g40fh0td.jpg">
+		</div>
+
+		<hgroup>
+		  <h1 class="header-author"><a href="/">Perspiration</a></h1>
+		</hgroup>
+
+		
+
+		
+			<div class="switch-btn">
+				<div class="icon">
+					<div class="icon-ctn">
+						<div class="icon-wrap icon-house" data-idx="0">
+							<div class="birdhouse"></div>
+							<div class="birdhouse_holes"></div>
+						</div>
+						<div class="icon-wrap icon-ribbon hide" data-idx="1">
+							<div class="ribbon"></div>
+						</div>
+						
+						
+					</div>
+					
+				</div>
+				<div class="tips-box hide">
+					<div class="tips-arrow"></div>
+					<ul class="tips-inner">
+						<li>菜单</li>
+						<li>标签</li>
+						
+						
+					</ul>
+				</div>
+			</div>
+		
+
+		<div class="switch-area">
+			<div class="switch-wrap">
+				<section class="switch-part switch-part1">
+					<nav class="header-menu">
+						<ul>
+						
+							<li><a href="/">主页</a></li>
+				        
+							<li><a href="/archives">所有文章</a></li>
+				        
+							<li><a href="/categories/reading">随笔</a></li>
+				        
+						</ul>
+					</nav>
+					<nav class="header-nav">
+						<div class="social">
+							
+								<a class="github" target="_blank" href="https://github.com/Perspiration" title="github">github</a>
+					        
+								<a class="weibo" target="_blank" href="http://weibo.com/u/1653286100/" title="weibo">weibo</a>
+					        
+						</div>
+					</nav>
+				</section>
+				
+				
+				<section class="switch-part switch-part2">
+					<div class="widget tagcloud">
+						<a href="/tags/HBase/" style="font-size: 10px;">HBase</a> <a href="/tags/Java/" style="font-size: 20px;">Java</a> <a href="/tags/NoSQL/" style="font-size: 15px;">NoSQL</a> <a href="/tags/Other/" style="font-size: 10px;">Other</a> <a href="/tags/Plan/" style="font-size: 10px;">Plan</a> <a href="/tags/算法/" style="font-size: 10px;">算法</a>
+					</div>
+				</section>
+				
+				
+				
+
+				
+			</div>
+		</div>
+	</header>				
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+  	<div class="overlay"></div>
+	<div class="intrude-less">
+		<header id="header" class="inner">
+			<div class="profilepic">
+				<img src="http://ww4.sinaimg.cn/large/628b24d4jw1eo3lelgnx4j20g40fh0td.jpg">
+			</div>
+
+			<hgroup>
+			  <h1 class="header-author"><a href="/">Perspiration</a></h1>
+			</hgroup>
+			
+			<nav class="header-menu">
+				<ul>
+				
+					<li><a href="/">主页</a></li>
+		        
+					<li><a href="/archives">所有文章</a></li>
+		        
+					<li><a href="/categories/reading">随笔</a></li>
+		        
+		        <div class="clearfix"></div>
+				</ul>
+			</nav>
+			<nav class="header-nav">
+				<div class="social">
+					
+						<a class="github" target="_blank" href="https://github.com/Perspiration" title="github">github</a>
+			        
+						<a class="weibo" target="_blank" href="http://weibo.com/u/1653286100/" title="weibo">weibo</a>
+			        
+				</div>
+			</nav>
+		</header>				
+	</div>
+</nav>
+      <article id="post-jvm-concurrent" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2015/07/18/jvm-concurrent/" class="article-date">
+  	<time datetime="2015-07-18T09:27:00.000Z" itemprop="datePublished">2015-07-18</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/blog/">blog</a>
+  </div>
+
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/">Java</a></li></ul>
+
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      《深入理解Java虚拟机》读书笔记（三）——并发机制
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>　　本文是关于Java虚拟机中并发机制的实现。首先介绍Java虚拟机中内存的划分以及内存读写过程中的同步机制，然后介绍了Java线程的是实现，最后简单讲了一下线程以及锁的优化。<br><a id="more"></a></p>
+<h1 id="一、Java内存模型"><a href="#一、Java内存模型" class="headerlink" title="一、Java内存模型"></a>一、Java内存模型</h1><h2 id="1-1-主内存和工作内存"><a href="#1-1-主内存和工作内存" class="headerlink" title="1.1 主内存和工作内存"></a>1.1 主内存和工作内存</h2><p>　　Java虚拟机中分为主内存和工作内存。所有的变量都存储在主内存中。每一条线程都有自己的工作内存，保存的是该线程使用到的变量的主内存副本拷贝，线程对变量的操作在工作内存中进行，线程间变量值的传递要通过主内存。  </p>
+<h2 id="1-2-内存间交互"><a href="#1-2-内存间交互" class="headerlink" title="1.2 内存间交互"></a>1.2 内存间交互</h2><p>　　主内存与工作内存的交互主要通过lock unlock read load use assign store write这八个操作实现。工作内存之间的数据交互主要是以主内存为媒介。<br>　　这八个操作所遵循的规则如下：  </p>
+<blockquote>
+<ol>
+<li>read和load，store和write必须一起出现  </li>
+<li>assign后必须同步回主内存  </li>
+<li>新变量只能在主内存中“诞生”，在工作内存中使用前必须初始化，即use、store前，必须先执行过assign、load  </li>
+<li>一个变量同一时刻只允许一条线程lock  </li>
+<li>对一个变量lock后，会情况工作内存中此变量的值，使用这个变量前，要重新执行load或assign  </li>
+<li>没有lock就没有unlock  </li>
+<li>对一个变量执行unlock前，必须把它同步回主内存。  </li>
+</ol>
+</blockquote>
+<p>　　最主要的得记住主内存到工作内存必须先read再load，工作内存到主内存要先store再write。  </p>
+<p>##1.3 同步机制<br>　　对主内存和工作内存的读写过程中，可能存在资源的竞争，Java虚拟机中提供了一些同步机制。  </p>
+<p>###1.3.1 volatile型变量<br>　　关键字volatile是java虚拟机提供的<strong>最轻量级</strong>的同步机制。<br>　　volatile可以保证当一条线程修改此变量，新值对于其他线程来说可以立即得知。（<strong>对所有线程的可见性</strong>）  </p>
+<p>　　运用volatile并不能保证所有情况下都得到正确的结果，因为对volatile变量的操作可能不是原子的，取值时保证是正确的，但是运算时可能值已改变，故会出现不同步的情况。<br>　　volatile不能保证操作的原子性，因此要正确的使用volatile需要满足两条规则：  </p>
+<blockquote>
+<ol>
+<li>运算结果不依赖变量的当前值，或确保只有单一线程修改变量的值；  </li>
+<li>变量不需要与其他转台量共同参与不变约束。  </li>
+</ol>
+</blockquote>
+<p>　　volatile能禁止指令重排序优化<br>　　volatile同步性能要优于锁</p>
+<p>　　volatile满足的规则：  </p>
+<blockquote>
+<ol>
+<li>use前须先load，load后必须use；  </li>
+<li>assign后必须store，store前必须assign；  </li>
+<li>若线程对于变量A的use或assign动作先于对变量B的use或assign动作，那么对于变量A的read或write动作就要先于对B的read或write动作。（此规则保证了volatile修饰的变量不会被指令重排序优化）  </li>
+</ol>
+</blockquote>
+<h3 id="1-3-2-先行发生原则"><a href="#1-3-2-先行发生原则" class="headerlink" title="1.3.2 先行发生原则"></a>1.3.2 先行发生原则</h3><p>　　先行发生原则可以程序的执行顺序，是判断数据是否存在竞争、线程是否安全的主要依据。<br>　　java内存模型中的先行发生规则：<br>　　1. 程序次序规则：线程内按照程序代码顺序执行<br>　　2. 管程锁定规则：unlock操作先于后面对同一个锁的lock操作<br>　　3. volatile变量规则：对volatile变量的写操作先于后面（时间上的先后顺序）对这个变量的读操作<br>　　4. 线程启动规则：线程的start()方法先于此线程的每个动作<br>　　5. 线程终止规则：线程内所有操作先于对此线程的终止检测<br>　　6. 线程中断规则：interrupt()方法调用先于被中断线程的代码检测到中断事件发生<br>　　7. 对象终结规则：对象初始化完成先于finalize（）方法开始<br>　　8. 传递性：操作A先于B，B先于C，则A先于C<br>　　时间先后顺序与先行发生原则之间基本没有太大的关系。衡量并发安全问题必须以先行发生原则为准。  </p>
+<h2 id="1-4-原子性、可见性与有序性"><a href="#1-4-原子性、可见性与有序性" class="headerlink" title="1.4 原子性、可见性与有序性"></a>1.4 原子性、可见性与有序性</h2><p>　　原子性：read load use assign store write都是原子操作，还可以用lock和unlock保证原子性，synchronized块之间的操作也具备原子性<br>　　可见性：volatile。还能通过synchronized和final实现<br>　　有序性：volatile和synchronized都可保证有序性。  </p>
+<p>　　synchronized关键字可以满足3种特性。大部分并发控制操作都能使用synchronized来完成，但是容易被滥用，会伴随一些性能影响。</p>
+<h1 id="二、Java与线程"><a href="#二、Java与线程" class="headerlink" title="二、Java与线程"></a>二、Java与线程</h1><h2 id="2-1-线程的实现方式"><a href="#2-1-线程的实现方式" class="headerlink" title="2.1 线程的实现方式"></a>2.1 线程的实现方式</h2><p>　　Java线程的实现主要有三种方式：<br>　　1. 使用<strong>内核线程</strong>实现：程序使用内核线程的一种高级接口——轻量级进程（LWP），各种线程操作要进行系统调用，还需要进行用户态和内核态间的切换，代价较高<br>　　2. 使用<strong>用户线程</strong>实现：不需要系统内核支援，只在用户态进行。但是所有线程操作都需要用户程序自己处理。<br>　　3. 使用用户线程加轻量级进程<strong>混合</strong>实现：LWP作为用户线程和内核线程之间的桥梁，可以使用内核提供的线程调度功能及处理器映射。用户线程的系统调用要通过LWP完成，降低了整个进程被完全阻塞的风险。用户线程与LWP的数量比不定，为N:M关系。</p>
+<h2 id="2-2-线程的调度"><a href="#2-2-线程的调度" class="headerlink" title="2.2 线程的调度"></a>2.2 线程的调度</h2><p>　　<strong>协同式</strong>线程调度：一个线程执行完后，主动通知系统切换到另一线程。时间不可控<br>　　<strong>强占式</strong>线程调度：每个线程由系统分配执行时间。线程的执行时间可控</p>
+<h2 id="2-3-线程的状态"><a href="#2-3-线程的状态" class="headerlink" title="2.3 线程的状态"></a>2.3 线程的状态</h2><p>　　5种状态：<br>　　新建<br>　　运行（running或ready）<br>　　无限期等待（等待被其他线程显示唤醒）<br>　　限期等待（一定时间后，系统自动唤醒）<br>　　阻塞（等待获取一个排它锁）<br>　　结束</p>
+<h1 id="三、线程安全"><a href="#三、线程安全" class="headerlink" title="三、线程安全"></a>三、线程安全</h1><p>　　定义：当一个多线程访问一个对象时，如果不用考虑这些线程在运行时环境下的调度和交替执行，也不需要额外的同步，或者在掉用方进行任何其他协调操作，调用这个对象的行为都可以获得正确的结果，那这个对象是线程安全的。</p>
+<h2 id="3-1-共享数据的类型"><a href="#3-1-共享数据的类型" class="headerlink" title="3.1 共享数据的类型"></a>3.1 共享数据的类型</h2><p>　　<strong>1.不可变</strong>：Immutable，final，线程安全<br>　　<strong>2.绝对线程安全</strong>：满足上面的定义<br>　　<strong>3.相对线程安全</strong>：保证对这个对象单独操作是线程安全的，调用的时候不需要做额外的保障措施，但是对一些特定顺序的连续调研，就可能需要再调用端使用额外的同步手段来保证调用的正确性。java中，大部分的线程安全都属于这种类型。<br>　　<strong>4.线程兼容</strong>：对象本身并不是线程安全的，但可以通过调用端使用同步手段安全使用。<br>　　<strong>5.线程对立</strong>：无论调用端是否采取同步措施，都无法在多线程下并发使用代码。</p>
+<h2 id="3-2-线程安全的实现方法"><a href="#3-2-线程安全的实现方法" class="headerlink" title="3.2 线程安全的实现方法"></a>3.2 线程安全的实现方法</h2><p>　　<strong>1.互斥同步</strong><br>　　　　同步：多线程并发访问共享数据时，保证共享数据在同一时刻只被一个线程使用。<br>　　　　互斥同步主要依靠synchronized(优先考虑)和重入锁（java.util.concurrent.ReentrantLock）实现<br>　　<strong>2.非阻塞同步</strong><br>　　　　互斥同步线程的挂起和恢复线程在内核态完成，会带来很大的性能消耗。因此引入非阻塞同步。<br>　　　　非阻塞同步是基于冲突检测的乐观并发策略，先进行操作，如果没有其他线程争用共享数据，那操作就成功了；如果共享数据有争用，产生了冲突，那就再采取其他补偿措施。<br>　　<strong>3.无同步方案</strong><br>　　　　如果代码本身就是线程安全的，那么根本不需要对其进行同步。线程安全的代码主要包括以下两种：<br>　　　　<strong>可重入代码</strong>：可以在执行的任何时刻中断它，转而去执行另一段代码，而在控制权返回后，原来的程序不会出现任何错误。（返回结果可预测）<br>　　　　<strong>线程本地存储</strong>：共享数据的代码是否能保证在同一个线程中执行，如果能保证，可以把共享数据的可见性范围限制在同一个线程之内，这样无须同步也能保证线程之间不出现数据争用问题。生产者-消费者模式；一个请求对应一个服务器线程。</p>
+<h1 id="四、锁优化"><a href="#四、锁优化" class="headerlink" title="四、锁优化"></a>四、锁优化</h1><p>　　JDK1.6对锁进行很多改进，实现了各种锁优化技术。让线程之间更搞笑地共享数据，以及解决竞争问题，从而提高程序的执行效率。<br>　　<strong>1.自旋锁</strong>：稍等一下，让线程执行一个忙循环（自旋）<br>　　　　自旋等待的时间要有一定限度，超过自旋次数仍没有获得锁，就要使用传统方式去挂起线程。<br>　　<strong>2.锁消除</strong>：对一些代码上要求同步，但被检测到不可能存在共享数据竞争的锁进行消除。<br>　　<strong>3.锁粗化</strong>：一系列连续操作对统一个对象反复加锁和解锁，会导致不必要的性能损耗<br>　　<strong>4.轻量级锁</strong>：对象的Mark Word更新为指向Lock Record的指针，锁标识位变为00.<br>　　　　如果两条以上线程争用同一个锁，那轻量级锁就不再有效，要膨胀为重量级锁。<br>　　　　根据：绝大部分的锁，在整个同步周期内都是不存在竞争的。<br>　　<strong>5.偏向锁</strong><br>　　　　目的：消除无竞争情况下的同步原语<br>　　　　锁会偏向第一个获得它的线程，如果接下来执行过程中，该锁没有被其他线程获取，则持有偏向锁的线程将永远不需要再进行同步。<br>　　　　程序中大多数的锁总是被多个不同的线程访问，那偏向模式就是多余的  </p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2015/07/20/string-stringbuffer-stringbuilder/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">&lt;</strong>
+      <div class="article-nav-title">
+        
+          String、StringBuffer和StringBuilder
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2015/07/18/jvm-memorymanagement/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">《深入理解Java虚拟机》读书笔记（二）——内存管理机制</div>
+      <strong class="article-nav-caption">&gt;</strong>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+<div class="share">
+	<!-- JiaThis Button BEGIN -->
+	<div class="jiathis_style">
+		<span class="jiathis_txt">分享到：</span>
+		<a class="jiathis_button_tsina"></a>
+		<a class="jiathis_button_cqq"></a>
+		<a class="jiathis_button_douban"></a>
+		<a class="jiathis_button_weixin"></a>
+		<a class="jiathis_button_tumblr"></a>
+		<a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jtico jtico_jiathis" target="_blank"></a>
+	</div>
+	<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js?uid=1405949716054953" charset="utf-8"></script>
+	<!-- JiaThis Button END -->
+</div>
+
+
+
+<div class="duoshuo">
+	<!-- 多说评论框 start -->
+	<div class="ds-thread" data-thread-key="jvm-concurrent" data-title="《深入理解Java虚拟机》读书笔记（三）——并发机制" data-url="http://yoursite.com/2015/07/18/jvm-concurrent/"></div>
+	<!-- 多说评论框 end -->
+	<!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+	<script type="text/javascript">
+	var duoshuoQuery = {short_name:"true"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		 || document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+	<!-- 多说公共JS代码 end -->
+</div>
+
+
+
+
+      <footer id="footer">
+  <div class="outer">
+    <div id="footer-info">
+    	<div class="footer-left">
+    		&copy; 2017 Perspiration
+    	</div>
+      	<div class="footer-right">
+      		<a href="http://hexo.io/" target="_blank">Hexo</a>  Theme <a href="https://github.com/litten/hexo-theme-yilia" target="_blank">Yilia</a> by <a href="http://perspiration.gitcafe.com" target="_blank">Perspiration</a>
+      	</div>
+    </div>
+  </div>
+</footer>
+    </div>
+    
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+  <script src="/js/main.js"></script>
+
+  </div>
+</body>
+</html>

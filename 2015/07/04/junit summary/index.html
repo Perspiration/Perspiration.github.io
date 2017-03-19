@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>JUnit学习总结 | Perspiration&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="JUnit是Java中的一个单元测试框架，有了JUnit之后，就能非常方便的对代码进行单元测试，以便验证代码的正确性。最近笔者对JUnit框架进行了简单的学习和实践。学习过程中主要参考了两个系列的文章：在Eclipse中使用JUnit4进行单元测试（中级篇）以及Junit使用教程（二）。在这里做一下简要记录。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JUnit学习总结">
+<meta property="og:url" content="http://yoursite.com/2015/07/04/junit summary/index.html">
+<meta property="og:site_name" content="Perspiration's blog">
+<meta property="og:description" content="JUnit是Java中的一个单元测试框架，有了JUnit之后，就能非常方便的对代码进行单元测试，以便验证代码的正确性。最近笔者对JUnit框架进行了简单的学习和实践。学习过程中主要参考了两个系列的文章：在Eclipse中使用JUnit4进行单元测试（中级篇）以及Junit使用教程（二）。在这里做一下简要记录。">
+<meta property="og:updated_time" content="2017-03-19T07:24:12.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="JUnit学习总结">
+<meta name="twitter:description" content="JUnit是Java中的一个单元测试框架，有了JUnit之后，就能非常方便的对代码进行单元测试，以便验证代码的正确性。最近笔者对JUnit框架进行了简单的学习和实践。学习过程中主要参考了两个系列的文章：在Eclipse中使用JUnit4进行单元测试（中级篇）以及Junit使用教程（二）。在这里做一下简要记录。">
+  
+    <link rel="alternative" href="/atom.xml" title="Perspiration&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="http://ww1.sinaimg.cn/large/628b24d4gw1ep19njh9ioj208x08xmyf.jpg">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  
+
+  <script src="http://libs.baidu.com/jquery/1.9.0/jquery.js"></script>
+</head>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+	<header id="header" class="inner">
+		<div class="profilepic">
+			<img src="http://ww4.sinaimg.cn/large/628b24d4jw1eo3lelgnx4j20g40fh0td.jpg">
+		</div>
+
+		<hgroup>
+		  <h1 class="header-author"><a href="/">Perspiration</a></h1>
+		</hgroup>
+
+		
+
+		
+			<div class="switch-btn">
+				<div class="icon">
+					<div class="icon-ctn">
+						<div class="icon-wrap icon-house" data-idx="0">
+							<div class="birdhouse"></div>
+							<div class="birdhouse_holes"></div>
+						</div>
+						<div class="icon-wrap icon-ribbon hide" data-idx="1">
+							<div class="ribbon"></div>
+						</div>
+						
+						
+					</div>
+					
+				</div>
+				<div class="tips-box hide">
+					<div class="tips-arrow"></div>
+					<ul class="tips-inner">
+						<li>菜单</li>
+						<li>标签</li>
+						
+						
+					</ul>
+				</div>
+			</div>
+		
+
+		<div class="switch-area">
+			<div class="switch-wrap">
+				<section class="switch-part switch-part1">
+					<nav class="header-menu">
+						<ul>
+						
+							<li><a href="/">主页</a></li>
+				        
+							<li><a href="/archives">所有文章</a></li>
+				        
+							<li><a href="/categories/reading">随笔</a></li>
+				        
+						</ul>
+					</nav>
+					<nav class="header-nav">
+						<div class="social">
+							
+								<a class="github" target="_blank" href="https://github.com/Perspiration" title="github">github</a>
+					        
+								<a class="weibo" target="_blank" href="http://weibo.com/u/1653286100/" title="weibo">weibo</a>
+					        
+						</div>
+					</nav>
+				</section>
+				
+				
+				<section class="switch-part switch-part2">
+					<div class="widget tagcloud">
+						<a href="/tags/HBase/" style="font-size: 10px;">HBase</a> <a href="/tags/Java/" style="font-size: 20px;">Java</a> <a href="/tags/NoSQL/" style="font-size: 15px;">NoSQL</a> <a href="/tags/Other/" style="font-size: 10px;">Other</a> <a href="/tags/Plan/" style="font-size: 10px;">Plan</a> <a href="/tags/算法/" style="font-size: 10px;">算法</a>
+					</div>
+				</section>
+				
+				
+				
+
+				
+			</div>
+		</div>
+	</header>				
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+  	<div class="overlay"></div>
+	<div class="intrude-less">
+		<header id="header" class="inner">
+			<div class="profilepic">
+				<img src="http://ww4.sinaimg.cn/large/628b24d4jw1eo3lelgnx4j20g40fh0td.jpg">
+			</div>
+
+			<hgroup>
+			  <h1 class="header-author"><a href="/">Perspiration</a></h1>
+			</hgroup>
+			
+			<nav class="header-menu">
+				<ul>
+				
+					<li><a href="/">主页</a></li>
+		        
+					<li><a href="/archives">所有文章</a></li>
+		        
+					<li><a href="/categories/reading">随笔</a></li>
+		        
+		        <div class="clearfix"></div>
+				</ul>
+			</nav>
+			<nav class="header-nav">
+				<div class="social">
+					
+						<a class="github" target="_blank" href="https://github.com/Perspiration" title="github">github</a>
+			        
+						<a class="weibo" target="_blank" href="http://weibo.com/u/1653286100/" title="weibo">weibo</a>
+			        
+				</div>
+			</nav>
+		</header>				
+	</div>
+</nav>
+      <article id="post-junit summary" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2015/07/04/junit summary/" class="article-date">
+  	<time datetime="2015-07-04T08:02:00.000Z" itemprop="datePublished">2015-07-04</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/blog/">blog</a>
+  </div>
+
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/">Java</a></li></ul>
+
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      JUnit学习总结
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>JUnit是Java中的一个单元测试框架，有了JUnit之后，就能非常方便的对代码进行单元测试，以便验证代码的正确性。最近笔者对JUnit框架进行了简单的学习和实践。学习过程中主要参考了两个系列的文章：<a href="http://blog.csdn.net/andycpp/article/details/1327346" target="_blank" rel="external">在Eclipse中使用JUnit4进行单元测试（中级篇）</a>以及<a href="http://blog.csdn.net/wangpeng047/article/details/9628449" target="_blank" rel="external">Junit使用教程（二）</a>。在这里做一下简要记录。<br><a id="more"></a></p>
+<h2 id="一、创建第一个junit测试用例"><a href="#一、创建第一个junit测试用例" class="headerlink" title="一、创建第一个junit测试用例"></a>一、创建第一个junit测试用例</h2><ol>
+<li>在Eclipse的项目中加入JUnit框架<br>项目右键-&gt;Properties-&gt;Java Build Path-&gt;Libraries-&gt;AddLIbrary-&gt;JUnit</li>
+<li>新建测试类<br>new-&gt;JUnit Test Case<br>填写Name, Class Under Test</li>
+<li>编写测试用例  </li>
+<li>运行<br>Run as JUnit Test<br>可在JUnit窗口看到测试结果。</li>
+</ol>
+<h2 id="二、编写测试用例"><a href="#二、编写测试用例" class="headerlink" title="二、编写测试用例"></a>二、编写测试用例</h2><p>待测试类  </p>
+<pre><code>public class Calculator {
+    private static int result; // 静态变量，用于存储运行结果
+    public void add(int n) {
+        result = result + n;
+    }
+    public void substract(int n) {
+        result = result - 1; //Bug: 正确的应该是 result =result-n
+    }
+    public void clear() { // 将结果清零
+        result = 0;
+    }
+    public int getResult() {
+        return result;
+    }
+}
+</code></pre><p>测试用例</p>
+<pre><code>import static org.junit.Assert.*;
+import org.junit.Before;
+import org.junit.Ignore;
+import org.junit.Test;
+
+public class CalculatorTest {
+    private static Calculator calculator = new Calculator();
+    @Before
+    public void setUp() throws Exception {
+        calculator.clear();
+    }
+    @Test
+    public void testAdd() {
+        calculator.add(2);
+        calculator.add(3);
+        assertEquals(5, calculator.getResult());
+    }
+    @Test
+    public void testSubstract() {
+        calculator.add(10);
+        calculator.substract(2);
+        assertEquals(8, calculator.getResult());
+    }
+}
+</code></pre><p>讲解</p>
+<ol>
+<li>import static org.junit.Assert.*；是一个静态包含，所以Assert. assertEquals()可以省略Assert  </li>
+<li>标注<br>1）@Test: 测试方法<br> a) (expected=XXException.class)<br> b) (timeout=xxx)<br>2）@Ignore: 忽略测试方法<br>3）@Before: 每一个测试方法之前运行<br>4）@After: 每一个测试方法之后运行<br>5）@BeforeClass: 所有测试开始之前运行,别忘了方法是静态的<br>6）@AfterClass: 所有测试结束之后运行<br>7）@Rule 允许灵活添加或重新定义测试类中的每个测试方法的行为<br>8）@FixMethodOrder 指定测试方法的执行顺序</li>
+</ol>
+<h2 id="三、Runner"><a href="#三、Runner" class="headerlink" title="三、Runner"></a>三、Runner</h2><p>测试代码通过Runner运行。如果没有指定，将运行系统默认Runner<br>指定Runner：<code>@RunWith(TestClassRunner. class )</code></p>
+<h2 id="四、参数化测试"><a href="#四、参数化测试" class="headerlink" title="四、参数化测试"></a>四、参数化测试</h2><p>在编写测试用例的时候，有时会需要运行多组数据以验证结果的正确性。对此，JUnit提供了参数化测试。</p>
+<pre><code>import static org.junit.Assert.assertEquals;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
+import java.util.Arrays;
+import java.util.Collection;
+
+@RunWith(Parameterized. class )
+public class SquareTest {
+    private static Calculator calculator = new Calculator();
+    private int param;
+    private int result;
+    @Parameters
+    public static Collection data() {
+        return Arrays.asList( new Object[][] {
+            { 2 , 4 } ,
+            { 0 , 0 } ,
+            {－ 3 , 9 } ,
+        } );
+    }    
+    // 构造函数，对变量进行初始化 
+    public SquareTest( int param, int result) {
+        this .param = param;
+        this .result = result;
+    }
+    @Test
+    public void square() {
+        calculator.square(param);
+        assertEquals(result, calculator.getResult());
+    } 
+}
+</code></pre><p>要点  </p>
+<ol>
+<li>参数化测试需要指定特殊的Runner  </li>
+<li>参数用@Parameters标记  </li>
+<li>data()中存放的是一个二维数组，分别代表参数和结果，顺序与构造函数一致</li>
+</ol>
+<h2 id="五、打包测试（一次性运行多个测试类）"><a href="#五、打包测试（一次性运行多个测试类）" class="headerlink" title="五、打包测试（一次性运行多个测试类）"></a>五、打包测试（一次性运行多个测试类）</h2><pre><code>import org.junit.runner.RunWith;
+import org.junit.runners.Suite;
+
+@RunWith(Suite. class )
+@Suite.SuiteClasses( {
+    CalculatorTest. class ,
+    SquareTest. class 
+} )
+public class AllCalculatorTests {
+
+}
+</code></pre><h2 id="六、Assert"><a href="#六、Assert" class="headerlink" title="六、Assert"></a>六、Assert</h2><p><code>assertArrayEquals(expecteds, actuals)</code> 查看两个数组是否相等。<br><code>assertEquals(expected, actual)</code> 查看两个对象是否相等。类似于字符串比较使用的equals()方法<br><code>assertNotEquals(first, second)</code> 查看两个对象是否不相等。<br><code>assertNull(object)</code> 查看对象是否为空。<br><code>assertNotNull(object)</code> 查看对象是否不为空。<br><code>assertSame(expected, actual)</code> 查看两个对象的引用是否相等。类似于使用“==”比较两个对象<br><code>assertNotSame(unexpected, actual)</code> 查看两个对象的引用是否不相等。类似于使用“!=”比较两个对象<br><code>assertTrue(condition)</code> 查看运行结果是否为true。<br><code>assertFalse(condition)</code> 查看运行结果是否为false。<br><code>assertThat(actual, matcher)</code> 查看实际值是否满足指定的条件<br><code>fail()</code> 让测试失败  </p>
+
+      
+    </div>
+    <footer class="article-footer">
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2015/07/14/reservoir-sampling/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">&lt;</strong>
+      <div class="article-nav-title">
+        
+          蓄水池抽样
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2015/04/07/resolution-ratio/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">解决Vbox屏幕分辨率问题</div>
+      <strong class="article-nav-caption">&gt;</strong>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+<div class="share">
+	<!-- JiaThis Button BEGIN -->
+	<div class="jiathis_style">
+		<span class="jiathis_txt">分享到：</span>
+		<a class="jiathis_button_tsina"></a>
+		<a class="jiathis_button_cqq"></a>
+		<a class="jiathis_button_douban"></a>
+		<a class="jiathis_button_weixin"></a>
+		<a class="jiathis_button_tumblr"></a>
+		<a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jtico jtico_jiathis" target="_blank"></a>
+	</div>
+	<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js?uid=1405949716054953" charset="utf-8"></script>
+	<!-- JiaThis Button END -->
+</div>
+
+
+
+<div class="duoshuo">
+	<!-- 多说评论框 start -->
+	<div class="ds-thread" data-thread-key="junit summary" data-title="JUnit学习总结" data-url="http://yoursite.com/2015/07/04/junit summary/"></div>
+	<!-- 多说评论框 end -->
+	<!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+	<script type="text/javascript">
+	var duoshuoQuery = {short_name:"true"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		 || document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+	<!-- 多说公共JS代码 end -->
+</div>
+
+
+
+
+      <footer id="footer">
+  <div class="outer">
+    <div id="footer-info">
+    	<div class="footer-left">
+    		&copy; 2017 Perspiration
+    	</div>
+      	<div class="footer-right">
+      		<a href="http://hexo.io/" target="_blank">Hexo</a>  Theme <a href="https://github.com/litten/hexo-theme-yilia" target="_blank">Yilia</a> by <a href="http://perspiration.gitcafe.com" target="_blank">Perspiration</a>
+      	</div>
+    </div>
+  </div>
+</footer>
+    </div>
+    
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+  <script src="/js/main.js"></script>
+
+  </div>
+</body>
+</html>
